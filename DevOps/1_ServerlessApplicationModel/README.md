@@ -119,7 +119,12 @@ git reset --hard origin/master
 
 ### Installation
 
-To complete this module, you will need to install SAM CLI.  If you already have SAM CLI installed, you can skip this section.
+To complete this module, you will need to install SAM CLI. Luckily, the Cloud9 IDE already has this pre-installed. 
+
+Instructions for installing SAM CLI are included here for interest. You can skip this section for todays workshop. 
+
+<details>
+<summary><strong>HOW TO install the SAM CLI (not required if using Cloud9) (expand for details)</strong></summary><p>
 
 #### Prerequisites
 
@@ -222,33 +227,30 @@ On your workstation, open a new terminal and run the following command.  In the 
 
    ![Bitvise Tunnel Config](images/bitvise-tunnel-config.png)
 
+</p></details>
+<p>
+
 ## SAM CLI Development
 
-In this section, you will use SAM CLI on your workstation to run the Unicorn API and test changes to it without having to deploy to AWS.
+In this section, you will use SAM CLI on your cloud-based IDE to run the Unicorn API and test changes to it without having to deploy to AWS.
 
 ### Run API Gateway locally
 
 1. From the **`uni-api`** directory, run the following command:
 
    ```bash
-   sam local start-api
-   ```
-   
-   If port forwarding from an EC2 developer instance, run the following command:
-
-   ```bash
-   sam local start-api --host 0.0.0.0
+   sam local start-api -p 8080
    ```
 
-   This will spawn a local API Gateway to test HTTP request/response functionality. Features hot-reloading to allow you to quickly develop, and iterate over your functions.  **`sam`** will automatically find any functions within your SAM template that have `Api` event sources defined, and mount them at the defined HTTP paths.
+   This will spawn a local API Gateway, listening on localhost:8080, to test HTTP request/response functionality. The local API Gateway features hot-reloading to allow you to quickly develop, and iterate over your functions.  **`sam`** will automatically find any functions within your SAM template that have `Api` event sources defined, and mount them at the defined HTTP paths.
 
    If this is your first time running SAM CLI, there will be a delay as the Docker images are downloaded.  Once successful, you should see output similar to the screenshot below:
 
-   ![start-api output](images/start-api-output.png)
+   ![start-api output](images/start-api-output-2.png)
 
-1. Open a browser and enter `http://127.0.0.1:3000/unicorns` in the address bar.  Confirm that you see the output below:
+1. To test the local API endpoint, click on **Preview** in the menubar located at the top of the IDE screen and select **Preview Running Application**. A browser window will appear within the IDE. To test the API endpoint, update the URI bar to end with `/unicorns`. Confirm that you see the output below:
 
-   ![Hello World in Browser](images/browser-hello-world.png)
+   ![Hello World in Browser](images/browser-hello-world-2.png)
 
 Congratulations!  You have successfully used SAM CLI to start a local development environment.  Keep the window open that is running the `sam local start-api` command until this module is complete.
 
@@ -263,13 +265,13 @@ Next, let's look at how you can use SAM CLI to test changes to your API.
 HOW TO update code and verify results (expand for details)
 </strong></summary>
 
-1. Open `app/list.js` in a text editor, update the message to read `Hello re:Invent!`, and save the changes.
+1. Open `app/list.js` in the IDE, update the message to read `Hello re:Invent!`, and save the changes.
 
    ![Hello re:Invent Code Changes](images/hello-reinvent.png)
 
 1. Refresh the browser and confirm that you see the output below:
 
-   ![Hello Re:Invent in Browser](images/browser-hello-reinvent.png)
+   ![Hello Re:Invent in Browser](images/browser-hello-reinvent-2.png)
 </details>
 <p>
 
@@ -279,6 +281,6 @@ To learn more about development with SAM CLI, check out [AWS Documentation](http
 
 ## Completion
 
-You have successfully performed local development and testing of a RESTful serverless API using the Serverless Application Model.  Please close the window running the `sam local start-api` command before preceding to the next module.
+You have successfully performed local development and testing of a RESTful serverless API using the Serverless Application Model.  Please CTRL-C the process running the `sam local start-api` command before proceding to the next module.
 
 In the next [Continuous Delivery Pipeline Module](../2_ContinuousDeliveryPipeline), you will learn how to setup deployment of that API into AWS and to automate this deployment process using AWS CodePipeline and AWS CodeBuild.

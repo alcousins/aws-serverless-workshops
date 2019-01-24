@@ -139,9 +139,7 @@ Using a text editor, open the `template.yml` file and append a new **AWS::Server
          Environment:
            Variables:
              TABLE_NAME: !Ref Table
-         Role:
-           Fn::ImportValue:
-             !Join ['-', [!Ref 'ProjectId', !Ref 'AWS::Region', 'LambdaTrustRole']]
+         Role: !GetAtt LambdaExecutionRole.Arn
    ```
    </details>
    
@@ -223,6 +221,30 @@ After the CloudFormation deploy command completes, you will use the AWS API Gate
     ![Validate 2](images/validate-2.png)
 
 1. Scroll down and click the **Test** button.
+
+1. Scroll to the top of the test page and check the result of the request in the fields located in the top right corner. **Uh Oh..** a 502 error has been returned:
+
+    ![Validate 4](images/apigw-err502.png)
+
+1. To check the cause of the error, review the log in the bottom left corner of the screen. Scroll to the end of the log to identify the specific error that has led to the 502 response from the backend lambda function:
+
+    ```code
+    Thu Jan 24 02:55:56 UTC 2019 : Lambda execution failed with status 200 due to customer function error: User: arn:aws:sts::XXXXYY291541:assumed-role/CodeStar-uni-api-Execution/uni-api-update is not authorized to perform: dynamodb:PutItem on resource: arn:aws:dynamodb:us-west-2:XXXXYY291541:table/awscodestar-uni-api-lambda-Table-1BQZN3FJDPTIS
+    ```
+
+1. The above error indicates the IAM Role attached to the lambda function does not have permission to PUT new items to the DynamoDB table used to store our Unicorn metadata. 
+
+1. To address the error, return to the Cloud9 editor and review the `template.yaml` file you edited earlier. Add the following ARN to the list of ManagedPolicyArns under the IAM Role definition:
+
+    ```code
+    arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+    ```
+
+1. This policy will grant access to PutItem on the DynamoDB table. The policy grants wider access than this, however, this access is constrained by the PermissionsBoundary document that is also specified in the template. 
+
+1. Commit the change to your git repository and push this to the origin to kick off another CI/CD deployment.
+
+1. Once CodePipeline has completed the deployment, re-run the API Gateway test. 
 
 1. Scroll to the top of the test page, and verify that on the right side of the panel that the **Status** code of the HTTP response is 200.
 

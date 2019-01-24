@@ -68,29 +68,7 @@ In order to tacke [Problem 1: Error Discovery Using X-Ray](#problem-1-error-disc
 
 
 
-### 1. Add the AWSXrayWriteOnlyAccess Policy to the `CodeStarWorker-uni-api-Lambda` Role
-
-1. In the AWS Management Console choose **Services** then select **IAM** under Security, Identity & Compliance.
-
-1. Select Role in the left navigation, type `CodeStarWorker-uni-api-Lambda` in the filter text box, and click the Role name link in the Role table.
-
-    ![Select Role](images/role-1.png)
- 
-1. On the Role Summary page, click the **Attach Policy** button in the **Managed Policies** section of the **Permissions** tab.
-
-    ![Role Details](images/role-2.png)
- 
-1. Type `AWSXRayWriteOnlyAccess` in the filter text box, select the checkbox next to the **AWSXRayWriteOnlyAccess** Managed Policy, and click the **Attach Policy** button.
-
-    ![Attach Policy](images/role-3.png)
- 
-1. The Role Summary will now include the **AWSXRayWriteOnlyAccess** policy in the list of **Managed Policies**.
-
-    ![Policy Attached](images/role-4.png)
-
-
-
-### 2. Seed the `uni-api` CodeCommit Git repository
+### 1. Seed the `uni-api` CodeCommit Git repository
 
 1. Each module has corresponding source code used to seed the CodeStar CodeCommit Git repository to support the workshop.  To seed the CodeCommit Git repository, click on the **Launch Stack** button for your region below:
 
@@ -118,7 +96,7 @@ In order to tacke [Problem 1: Error Discovery Using X-Ray](#problem-1-error-disc
 
 
 
-### 3. Fetch CodeCommit Git Repository
+### 2. Fetch CodeCommit Git Repository
 
 Now that the CodeCommit Git repository has been seeded with new source code, you will need to fetch the changes locally so that you may modify the code.  Typically, this is accomplished using the `git pull` command, however for the workshop we have replaced the repository with a new history and different Git commands will be used.
 
@@ -129,11 +107,42 @@ git fetch --all
 git reset --hard origin/master
 ```
 
+### 3. Fix the npm install command to install Lambda function dependencies
 
+1. When the code passes through the CI/CD pipeline, dependencies are installed by CodeBuild using the npm command. CodeBuild executes in a container and runs npm using the lowest possible privileges. A side-effect of this behavior is npm is not able to execute a postinstall step that is included in the `package.json` file included in the root folder:
+
+    ```code
+    "scripts": {
+        "postinstall": "cd app && npm install"
+    },
+    ```
+
+1. To allow the CodeBuild environment to run this step, npm needs to be run in "Unsafe Permissions" mode. To enable this, modify line 7 of the `buildspec.yml` file to read:
+
+    ```yaml
+          - npm install --unsafe-perm
+    ```
+
+### 4. Re-add permission to access DynamoDB to the Lambda function
+
+1. The updated source code has reverted the fix we applied in the previous lab to grant access to DynamoDB to our Lambda function. You can restore this by editing the `template.yml` file and adding the following ARN to the list of ManagedPolicyArns attached to the IAM Role:
+
+    ```code
+    arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+    ```
+
+### 5. Push the updated code to CodeCommit
+
+1. Now that you have made some changes to the source, save and commit your changes to git before pushing them to the CodeCommit repository:
+
+    ```bash
+    git commit -a
+    git push origin
+    ``` 
 
 ### 4. Validate CodePipeline Unicorn API Deployment
 
-After the repository has been seeded, it will start a pipeline execution.  Monitor the pipeline until you observe the pipeline completion, indicated by the **Deploy** stage turning green.
+After the repository has been updated, a pipeline execution will commence.  Monitor the pipeline until you observe the pipeline completion, indicated by the **Deploy** stage turning green.
 
 ![Pipeline Complete](images/codestar-3.png)
 </details>
